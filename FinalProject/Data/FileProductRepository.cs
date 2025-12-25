@@ -10,7 +10,7 @@ public class FileProductRepository(string path) : IProductRepository
         foreach (var line in File.ReadLines(path))
         {
             var parts = line.Split(';');
-            if (parts.Length < 5) continue;
+            if (parts.Length != 5) continue;
 
             products.Add(new Product(
                 int.Parse(parts[0].Trim()),

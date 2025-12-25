@@ -5,14 +5,20 @@ using FinalProject.Services;
 using FinalProject.Controllers;
 
 IProductRepository repository = new FileProductRepository("C:\\Users\\Asus\\OneDrive\\Desktop\\FinalProject\\FinalProject\\Dataset\\products.txt");
-// Use absolute path
+// Use absolute path (doesn't work in other cases for some reason)
 var service = new InventoryService(repository);
 var controller = new ProductController(service);
+string searchUsage = ("- search example: " +
+                      "\n>>> :search name [Press Enter]" +
+                      "\nEnter name of product:" +
+                      "\n>>> :Vase");
 
-Console.WriteLine("Tableware and Household Goods Warehouse\nv 1.1\nWrite help to receive list of commands.");
+Console.WriteLine("Tableware and Household Goods Warehouse\nv 1.4\nWrite 'help' to receive list of commands.");
 while (true)
 {
+    Console.ForegroundColor = ConsoleColor.Blue;
     Console.WriteLine("Enter command\n>>> :");
+    Console.ResetColor();
     var userInput = Console.ReadLine();
     if (string.IsNullOrWhiteSpace(userInput)) continue;
     
@@ -26,8 +32,20 @@ while (true)
             Console.WriteLine("List of commands available:\n" +
                               "info => information about the app:  Developer Full Name, App version, Developer's Contact information ..etc.\n" +
                               "list => list of all products\n" +
-                              "search [search category(e.g name, id ..)] *enter* then input [value]=> searches the inventory\n" +
-                              "exit => exit the program\n");
+                              "exit => exit the program\n" +
+                              "search [search category(e.g name, id ..)]*enter* then input [value]\n");
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(searchUsage);
+            Console.ResetColor();
+            break;
+        
+        case "info":
+            Console.WriteLine("Developer:Ilya Serbin\n" +
+                              "Application Name: Tableware and Household Goods Warehouse\n" +
+                              "Version: 1.4\n" +
+                              "Dev Contact info:\n" +
+                              "- Phone Number: +12345678\n" +
+                              "- Email: ilya_serbin@student.itpu.uz");
             break;
         
         case "list":
@@ -37,9 +55,12 @@ while (true)
             break;
         
         case "search":
-            if (parts.Length < 2)
+            if (parts.Length != 2)
             {
-                Console.WriteLine("Wrong number of parameters\nUsage example: search [category/name/id... ect]");
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Wrong number of parameters!");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine(searchUsage);
                 break;
             }
             
@@ -81,7 +102,9 @@ while (true)
                     DisplayResults(idSearchResult);
                     break;
                 default:
-                    Console.WriteLine("Enter valid command: search [category/name/id/price]");
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Enter valid command.\nType 'help' for more information.");
+                    Console.ResetColor();
                     continue;
             }
 
@@ -89,6 +112,13 @@ while (true)
 
         case "exit":
                 return;
+        default:
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Wrong command, please try again.");
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("Type 'help' for a list of commands.");
+            Console.ResetColor();
+            break;
     }
 }
 
@@ -96,18 +126,20 @@ void DisplayResults(List<Product> products)
 {
     if (products.Count == 0)
     {
+        Console.ForegroundColor = ConsoleColor.Red;
         Console.WriteLine("No products found matching those criteria.");
+        Console.ResetColor();
         return;
     }
-
+    Console.ForegroundColor = ConsoleColor.Cyan;
     Console.WriteLine("\n{0,-5} {1,-25} {2,-15} {3,-10} {4,-10}", "ID", "Name", "Category", "Price", "Stock");
     Console.WriteLine(new string('-', 70));
+    Console.ResetColor();
 
     foreach (var p in products)
     {
         Console.WriteLine("{0,-5} {1,-25} {2,-15} {3,-10:C} {4,-10}", 
             p.Id, p.Name, p.Category, p.Price, p.Quantity);
     }
-    Console.WriteLine();
 }
 
