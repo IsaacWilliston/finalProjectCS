@@ -1,6 +1,6 @@
-﻿namespace FinalProject;
+﻿namespace FinalProject.Domain;
 
-class Product
+public class Product
 {
     public int Id { get; }
     public string Name { get; }

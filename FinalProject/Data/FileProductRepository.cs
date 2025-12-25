@@ -1,14 +1,19 @@
-﻿namespace FinalProject;
+﻿namespace FinalProject.Data;
+using Domain;
 
-class FileLoader
+public class FileProductRepository(string path) : IProductRepository
 {
-    public static List<Product> LoadProducts(string path)
+    public List<Product> GetAll()
     {
         var products = new List<Product>();
+
+        if (!File.Exists(path)) return products;
 
         foreach (var line in File.ReadLines(path))
         {
             var parts = line.Split(';');
+            if (parts.Length < 5) continue;
+
             products.Add(new Product(
                 int.Parse(parts[0]),
                 parts[1],
@@ -17,7 +22,6 @@ class FileLoader
                 int.Parse(parts[4])
             ));
         }
-
         return products;
     }
 }
