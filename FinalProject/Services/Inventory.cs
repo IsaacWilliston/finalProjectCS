@@ -1,5 +1,5 @@
 ﻿namespace FinalProject.Services;
-using FinalProject.Domain;
+using Domain;
 
 public class InventoryService
 {

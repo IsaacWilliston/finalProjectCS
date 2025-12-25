@@ -5,10 +5,10 @@ using FinalProject.Services;
 using FinalProject.Controllers;
 
 IProductRepository repository = new FileProductRepository("C:\\Users\\Asus\\OneDrive\\Desktop\\FinalProject\\FinalProject\\Dataset\\products.txt");
+// Use absolute path
 var service = new InventoryService(repository);
 var controller = new ProductController(service);
 
-string brakeLine = "<-------------------------------------------------------->\n";
 Console.WriteLine("Tableware and Household Goods Warehouse\nv 1.1\nWrite help to receive list of commands.");
 while (true)
 {
@@ -23,10 +23,10 @@ while (true)
     switch (command)
     {
         case "help":
-            Console.WriteLine("List of commands available:\n" + $"{brakeLine}\n" +
+            Console.WriteLine("List of commands available:\n" +
                               "info => information about the app:  Developer Full Name, App version, Developer's Contact information ..etc.\n" +
                               "list => list of all products\n" +
-                              "search [search category] [value]=> searches the inventory\n" +
+                              "search [search category(e.g name, id ..)] *enter* then input [value]=> searches the inventory\n" +
                               "exit => exit the program\n");
             break;
         

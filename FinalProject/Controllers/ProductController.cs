@@ -1,6 +1,4 @@
-﻿using System.Runtime.InteropServices.JavaScript;
-
-namespace FinalProject.Controllers;
+﻿namespace FinalProject.Controllers;
 using Domain;
 using Services;
 
