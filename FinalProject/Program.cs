@@ -4,7 +4,7 @@ using FinalProject.Data;
 using FinalProject.Services;
 using FinalProject.Controllers;
 
-IProductRepository repository = new FileProductRepository("products.txt");
+IProductRepository repository = new FileProductRepository("C:\\Users\\Asus\\OneDrive\\Desktop\\FinalProject\\FinalProject\\Dataset\\products.txt");
 var service = new InventoryService(repository);
 var controller = new ProductController(service);
 
@@ -33,7 +33,7 @@ while (true)
         case "list":
             Console.WriteLine($"List of products:");
             var allProducts = controller.GetAllProducts();
-            Console.WriteLine($"List of products:{allProducts}");
+            DisplayResults(allProducts);
             break;
         
         case "search":
@@ -51,21 +51,26 @@ while (true)
                     string? productName = Console.ReadLine();
                     Debug.Assert(productName != null, nameof(productName) + " != null");
                     var nameSearchResult = controller.SearchByName(productName);
-                    Console.WriteLine($"Search result: {nameSearchResult}");
+                    DisplayResults(nameSearchResult);
                     break;
                 
                 case "category":
                     Console.WriteLine("Enter category:");
                     string? categoryName = Console.ReadLine();
-                    var categorySearchResult = controller.SearchByCategory(categoryName);
-                    Console.WriteLine($"Search result: {categorySearchResult}");
+                    if (string.IsNullOrWhiteSpace(categoryName))
+                    {
+                        Console.WriteLine("Category cannot be empty.");
+                        break;
+                    }
+                    var categorySearchResult = controller.SearchByCategory(categoryName.Trim());
+                    DisplayResults(categorySearchResult);
                     break;
                 
                 case "price":
                     Console.WriteLine("Enter price:");
                     decimal price = decimal.Parse(Console.ReadLine() ?? throw new InvalidOperationException());
                     var priceSearchResult = controller.SearchByPrice(price);
-                    Console.WriteLine($"Search result: {priceSearchResult}");
+                    DisplayResults(priceSearchResult);
                     break;
                 
                 case "id":
@@ -73,7 +78,7 @@ while (true)
                     string? productId = Console.ReadLine();
                     var searchId = Convert.ToInt32(productId);
                     var idSearchResult = controller.SearchById(searchId);
-                    Console.WriteLine($"Search result: {idSearchResult}");
+                    DisplayResults(idSearchResult);
                     break;
                 default:
                     Console.WriteLine("Enter valid command: search [category/name/id/price]");
@@ -85,5 +90,24 @@ while (true)
         case "exit":
                 return;
     }
+}
+
+void DisplayResults(List<Product> products)
+{
+    if (products.Count == 0)
+    {
+        Console.WriteLine("No products found matching those criteria.");
+        return;
+    }
+
+    Console.WriteLine("\n{0,-5} {1,-25} {2,-15} {3,-10} {4,-10}", "ID", "Name", "Category", "Price", "Stock");
+    Console.WriteLine(new string('-', 70));
+
+    foreach (var p in products)
+    {
+        Console.WriteLine("{0,-5} {1,-25} {2,-15} {3,-10:C} {4,-10}", 
+            p.Id, p.Name, p.Category, p.Price, p.Quantity);
+    }
+    Console.WriteLine();
 }
 

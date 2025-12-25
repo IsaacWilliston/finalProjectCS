@@ -1,0 +1,10 @@
+﻿101;Silver Spoon;Tableware;15.50;120
+102;Ceramic Plate;Tableware;25.00;80
+103;Crystal Vase;Household;45.99;30
+104;Cotton Towel;Household;12.00;200
+105;Stainless Knife;Tableware;18.75;150
+106;Glass Bowl;Tableware;10.25;60
+107;Wool Blanket;Household;55.00;25
+108;Dinner Set;Tableware;120.00;15
+109;Desk Lamp;Household;35.50;45
+110;Picture Frame;Household;22.30;100

@@ -7,7 +7,13 @@ public class FileProductRepository(string path) : IProductRepository
     {
         var products = new List<Product>();
 
-        if (!File.Exists(path)) return products;
+        Console.WriteLine($"DEBUG path: {Path.GetFullPath(path)}");
+
+        if (!File.Exists(path))
+        {
+            Console.WriteLine("DEBUG: products.txt not found.");
+            return products;
+        }
 
         foreach (var line in File.ReadLines(path))
         {
@@ -15,13 +21,15 @@ public class FileProductRepository(string path) : IProductRepository
             if (parts.Length < 5) continue;
 
             products.Add(new Product(
-                int.Parse(parts[0]),
-                parts[1],
-                parts[2],
-                decimal.Parse(parts[3]),
-                int.Parse(parts[4])
+                int.Parse(parts[0].Trim()),
+                parts[1].Trim(),
+                parts[2].Trim(),
+                decimal.Parse(parts[3].Trim()),
+                int.Parse(parts[4].Trim())
             ));
         }
+
         return products;
     }
+
 }

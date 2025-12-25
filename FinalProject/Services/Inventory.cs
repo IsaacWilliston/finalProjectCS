@@ -12,10 +12,10 @@ public class InventoryService
 
     public List<Product> GetAll()
     {
-        return _products;
+        return new List<Product>(_products);
     }
 
-    public List<Product> SearchByName(string? name)
+    public List<Product> SearchByName(string name)
     {
         return _products
             .Where(p => p.Name.Contains(name, StringComparison.OrdinalIgnoreCase)).ToList();
@@ -36,6 +36,6 @@ public class InventoryService
     public List<Product> SearchByPrice(decimal price)
     {
         return _products
-            .Where(p => p.Price >= price).ToList();
+            .Where(p => p.Price >= price && p.Price <= (price + 1)).ToList();
     }
 }
