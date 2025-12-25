@@ -14,6 +14,19 @@ public class InventoryService
     {
         return new List<Product>(_products);
     }
+    
+    public List<Product> GetAllSorted(string sortBy, bool ascending = true)
+    {
+        IEnumerable<Product> sorted = sortBy.ToLower() switch
+        {
+            "id"       => ascending ? _products.OrderBy(p => p.Id) : _products.OrderByDescending(p => p.Id),
+            "price"    => ascending ? _products.OrderBy(p => p.Price) : _products.OrderByDescending(p => p.Price),
+            "quantity" => ascending ? _products.OrderBy(p => p.Quantity) : _products.OrderByDescending(p => p.Quantity),
+            _ => _products
+        };
+
+        return sorted.ToList();
+    }
 
     public List<Product> SearchByName(string name)
     {

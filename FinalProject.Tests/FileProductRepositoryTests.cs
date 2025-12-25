@@ -147,4 +147,80 @@ public class FileProductRepositoryTests
         Assert.That(products[1].Id, Is.EqualTo(102));
         Assert.That(products[2].Id, Is.EqualTo(103));
     }
+
+    [Test]
+    public void GetAll_WithAscendingOrder_ReturnsProductsInAscendingOrder()
+    {
+        var content = "101;Silver Spoon;Tableware;15.50;120\n" +
+                     "102;Ceramic Plate;Tableware;25.00;80\n" +
+                     "103;Crystal Vase;Household;45.99;30\n" +
+                     "104;Cotton Towel;Household;12.00;200\n" +
+                     "105;Stainless Knife;Tableware;18.75;150";
+        File.WriteAllText(_testFilePath, content);
+        var repository = new FileProductRepository(_testFilePath);
+
+        var products = repository.GetAll();
+
+        Assert.That(products.Count, Is.EqualTo(5));
+        
+        Assert.That(products[0].Id, Is.EqualTo(101));
+        Assert.That(products[1].Id, Is.EqualTo(102));
+        Assert.That(products[2].Id, Is.EqualTo(103));
+        Assert.That(products[3].Id, Is.EqualTo(104));
+        Assert.That(products[4].Id, Is.EqualTo(105));
+        
+        for (int i = 0; i < products.Count - 1; i++)
+        {
+            Assert.That(products[i].Id, Is.LessThan(products[i + 1].Id));
+        }
+    }
+
+    [Test]
+    public void GetAll_WithDescendingOrder_ReturnsProductsInDescendingOrder()
+    {
+        var content = "105;Stainless Knife;Tableware;18.75;150\n" +
+                     "104;Cotton Towel;Household;12.00;200\n" +
+                     "103;Crystal Vase;Household;45.99;30\n" +
+                     "102;Ceramic Plate;Tableware;25.00;80\n" +
+                     "101;Silver Spoon;Tableware;15.50;120";
+        File.WriteAllText(_testFilePath, content);
+        var repository = new FileProductRepository(_testFilePath);
+
+        var products = repository.GetAll();
+
+        Assert.That(products.Count, Is.EqualTo(5));
+        
+        Assert.That(products[0].Id, Is.EqualTo(105));
+        Assert.That(products[1].Id, Is.EqualTo(104));
+        Assert.That(products[2].Id, Is.EqualTo(103));
+        Assert.That(products[3].Id, Is.EqualTo(102));
+        Assert.That(products[4].Id, Is.EqualTo(101));
+        
+        for (int i = 0; i < products.Count - 1; i++)
+        {
+            Assert.That(products[i].Id, Is.GreaterThan(products[i + 1].Id));
+        }
+    }
+
+    [Test]
+    public void GetAll_WithUnsortedOrder_ReturnsProductsInFileOrder()
+    {
+        var content = "103;Crystal Vase;Household;45.99;30\n" +
+                     "101;Silver Spoon;Tableware;15.50;120\n" +
+                     "105;Stainless Knife;Tableware;18.75;150\n" +
+                     "102;Ceramic Plate;Tableware;25.00;80\n" +
+                     "104;Cotton Towel;Household;12.00;200";
+        File.WriteAllText(_testFilePath, content);
+        var repository = new FileProductRepository(_testFilePath);
+
+        var products = repository.GetAll();
+
+        Assert.That(products.Count, Is.EqualTo(5));
+        
+        Assert.That(products[0].Id, Is.EqualTo(103));
+        Assert.That(products[1].Id, Is.EqualTo(101));
+        Assert.That(products[2].Id, Is.EqualTo(105));
+        Assert.That(products[3].Id, Is.EqualTo(102));
+        Assert.That(products[4].Id, Is.EqualTo(104));
+    }
 }
