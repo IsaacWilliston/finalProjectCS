@@ -1,6 +1,5 @@
 using NUnit.Framework;
 using FinalProject.Data;
-using FinalProject.Domain;
 
 namespace FinalProject.Tests;
 

@@ -52,13 +52,6 @@ static class UserView
                     break;
 
                 case "list":
-                    if (parts.Length == 1)
-                    {
-                        var allProductsUnsorted = controller.GetAllProducts();
-                        DisplayResults(allProductsUnsorted);
-                        break;
-                    }
-
                     if (parts.Length == 2 || parts.Length > 3)
                     {
                         Console.ForegroundColor = ConsoleColor.Red;
@@ -66,11 +59,18 @@ static class UserView
                         break;
                     }
                     
+                    if (parts.Length == 1)
+                    {
+                        var allProductsUnsorted = controller.GetAllProducts();
+                        DisplayResults(allProductsUnsorted);
+                        break;
+                    }
+                    
                     string? sortField = parts[1].ToLower();
-                    Debug.Assert(sortField != null, "sortField != null"); 
+                    Debug.Assert(sortField != null); 
                     
                     string? sortOrder = parts[2].ToLower();
-                    Debug.Assert(sortOrder != null, "sortOrder != null");
+                    Debug.Assert(sortOrder != null);
                     
                     bool ascending;
                     switch (sortOrder)
