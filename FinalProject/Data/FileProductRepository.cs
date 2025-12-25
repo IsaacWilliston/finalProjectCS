@@ -7,14 +7,6 @@ public class FileProductRepository(string path) : IProductRepository
     {
         var products = new List<Product>();
 
-        Console.WriteLine($"DEBUG path: {Path.GetFullPath(path)}");
-
-        if (!File.Exists(path))
-        {
-            Console.WriteLine("DEBUG: products.txt not found.");
-            return products;
-        }
-
         foreach (var line in File.ReadLines(path))
         {
             var parts = line.Split(';');
