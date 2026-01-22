@@ -96,20 +96,19 @@ public class TablewareCsvSourceTests
     [Test]
     public void SearchByPrice_WithFuzzyMatch_ReturnsItemsWithinOneUnitRange()
     {
-        // Arrange
-        // Searching range from 9.0 to 11.0
-        var content = "101;Lower Bound;Tableware;9.00;10\n" +   // Should match
-                            "102;Exact Match;Tableware;10.00;10\n" +  // Should match
-                            "103;Upper Bound;Tableware;11.00;10\n" +  // Should match
-                            "104;Too Low;Tableware;8.99;10\n" +       // Should NOT match
-                            "105;Too High;Tableware;11.01;10";        // Should NOT match
-    
+        // Arrange Searching range from 9.0 to 11.0
+        var content = "101;Lower Bound;Tableware;9.00;10\n" +   // Should match (9.00 >= 9.0)
+                      "102;Exact Match;Tableware;10.00;10\n" +  // Should match (10.00 in range)
+                      "103;Upper Bound;Tableware;11.00;10\n" +  // Should match (11.00 <= 11.0)
+                      "104;Too Low;Tableware;8.99;10\n" +       // Should NOT match (8.99 < 9.0)
+                      "105;Too High;Tableware;11.01;10";        // Should NOT match (11.01 > 11.0)
+
         File.WriteAllText(_testFilePath, content);
 
-        var source = new TablewareCsvSource(_testFilePath);
         var factory = ProductDaoFactory.Instance;
-        factory.RegisterSource<Tableware>(source);
-        var dao = factory.CreateProductDao<Tableware>();
+        var source = new TablewareCsvSource(_testFilePath);
+        factory.RegisterSource<Product>(source);
+    
         var service = new InventoryService(factory);
         var controller = new ProductController(service);
 
@@ -117,9 +116,10 @@ public class TablewareCsvSourceTests
         var results = controller.SearchByPrice(10.0m);
 
         // Assert
-        Assert.That(results.Count, Is.EqualTo(3), "Should find exactly 3 items within the 9.0-11.0 range");
-    
-        // Verify specific items are present
+        Assert.That(results.Count, Is.EqualTo(3), 
+            $"Should find exactly 3 items within the 9.0-11.0 range. Found: {results.Count}. " +
+            $"Items: {string.Join(", ", results.Select(r => $"{r.Name}({r.Price})"))}");
+
         var names = results.Select(p => p.Name).ToList();
         Assert.That(names, Contains.Item("Lower Bound"));
         Assert.That(names, Contains.Item("Exact Match"));
