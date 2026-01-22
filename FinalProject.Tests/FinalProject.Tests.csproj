@@ -6,6 +6,7 @@
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
+        <RootNamespace>FinalProject.Tests</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

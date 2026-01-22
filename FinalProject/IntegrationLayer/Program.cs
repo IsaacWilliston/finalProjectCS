@@ -1,13 +1,23 @@
 ﻿using FinalProject.Domain;
-using FinalProject.Data;
+using FinalProject.DataAccess;
 using FinalProject.Services;
 using FinalProject.Controllers;
 using FinalProject.ConsoleView;
 
-IProductRepository repository = new FileProductRepository("C:\\Users\\Asus\\OneDrive\\Desktop\\FinalProject\\FinalProject\\Dataset\\products.txt");
-// Use absolute path (doesn't work in other cases for some reason)
-var service = new InventoryService(repository);
+var factory = ProductDaoFactory.Instance;
+string filePath = "Dataset/products.txt";
+
+if (File.Exists(filePath))
+{
+    factory.RegisterSource<Product>(new TablewareCsvSource(filePath));
+}
+else
+{
+    throw new FileNotFoundException("File not found.", filePath);
+}
+
+
+var service = new InventoryService(factory);
+
 var controller = new ProductController(service);
-
 UserView.Main(controller);
-

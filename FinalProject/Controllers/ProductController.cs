@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic; // Fixes unresolved 'List' if necessary
-using FinalProject.Domain;
-using FinalProject.Domain.Filtering; // Fixes 'UniversalConditions' and 'IPredicate'
+﻿using FinalProject.Domain;
+using FinalProject.Domain.Filtering;
 using FinalProject.Services;
 
 namespace FinalProject.Controllers;
@@ -35,8 +34,13 @@ public class ProductController
 
     public List<Product> SearchByPrice(decimal price)
     {
-        // For exact price search as used in your ConsoleView
-        var condition = new UniversalConditions.ExactSearchCondition<Product, decimal>(price, p => p.Price);
+        decimal minPrice = price - 1;
+        decimal maxPrice = price + 1;
+
+
+        var searchRange = new Range<decimal>(minPrice, maxPrice);
+        var condition = new UniversalConditions.RangeSearchCondition<Product, decimal>(searchRange, p => p.Price);
+
         return _inventory.Search(condition);
     }
 }

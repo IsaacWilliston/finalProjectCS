@@ -1,10 +1,13 @@
+using FinalProject.Controllers;
 using NUnit.Framework;
-using FinalProject.Data;
+using FinalProject.DataAccess;
+using FinalProject.Domain;
+using FinalProject.Services;
 
 namespace FinalProject.Tests;
 
 [TestFixture]
-public class FileProductRepositoryTests
+public class TablewareCsvSourceTests
 {
     private string _testFilePath = null!;
 
@@ -24,202 +27,104 @@ public class FileProductRepositoryTests
     }
 
     [Test]
-    public void GetAll_WithValidProducts_ReturnsAllProducts()
+    public void Parse_WithValidLine_ReturnsCorrectTableware()
     {
-        var content = "101;Silver Spoon;Tableware;15.50;120\n" +
-                     "102;Ceramic Plate;Tableware;25.00;80\n" +
-                     "103;Crystal Vase;Household;45.99;30";
+        // Arrange
+        var line = "101;Silver Spoon;Tableware;15.50;120";
+        File.WriteAllText(_testFilePath, line);
+        var source = new TablewareCsvSource(_testFilePath);
+
+        // Act
+        var product = source.First(); 
+
+        // Assert
+        Assert.That(product.Id, Is.EqualTo(101));
+        Assert.That(product.Name, Is.EqualTo("Silver Spoon"));
+        Assert.That(product.Category, Is.EqualTo("Tableware"));
+        Assert.That(product.Price, Is.EqualTo(15.50m));
+        Assert.That(product.Quantity, Is.EqualTo(120));
+    }
+
+    [Test]
+    public void GetEnumerator_WithInvalidFormat_ThrowsDaoException()
+    {
+        // Arrange
+        var content = "101;Silver Spoon;Tableware";
         File.WriteAllText(_testFilePath, content);
-        var repository = new FileProductRepository(_testFilePath);
-        
-        var products = repository.GetAll();
-        
-        Assert.That(products, Is.Not.Null);
-        Assert.That(products.Count, Is.EqualTo(3));
-        
-        Assert.That(products[0].Id, Is.EqualTo(101));
-        Assert.That(products[0].Name, Is.EqualTo("Silver Spoon"));
-        Assert.That(products[0].Category, Is.EqualTo("Tableware"));
-        Assert.That(products[0].Price, Is.EqualTo(15.50m));
-        Assert.That(products[0].Quantity, Is.EqualTo(120));
+        var source = new TablewareCsvSource(_testFilePath);
 
-        Assert.That(products[1].Id, Is.EqualTo(102));
-        Assert.That(products[1].Name, Is.EqualTo("Ceramic Plate"));
-        Assert.That(products[1].Category, Is.EqualTo("Tableware"));
-        Assert.That(products[1].Price, Is.EqualTo(25.00m));
-        Assert.That(products[1].Quantity, Is.EqualTo(80));
-
-        Assert.That(products[2].Id, Is.EqualTo(103));
-        Assert.That(products[2].Name, Is.EqualTo("Crystal Vase"));
-        Assert.That(products[2].Category, Is.EqualTo("Household"));
-        Assert.That(products[2].Price, Is.EqualTo(45.99m));
-        Assert.That(products[2].Quantity, Is.EqualTo(30));
+        // Act / Assert
+        Assert.Throws<DaoException>(() => {
+            var list = source.ToList();
+        });
     }
 
     [Test]
-    public void GetAll_WithWhitespace_TrimsCorrectly()
+    public void ProductDao_FindAll_ReturnsAllItemsFromSource()
     {
-        var content = "  101  ;  Silver Spoon  ;  Tableware  ;  15.50  ;  120  ";
+        // Arrange
+        var content = "101;Spoon;Tableware;1.0;10\n" +
+                            "102;Fork;Tableware;2.0;20";
         File.WriteAllText(_testFilePath, content);
-        var repository = new FileProductRepository(_testFilePath);
-        
-        var products = repository.GetAll();
-        
-        Assert.That(products.Count, Is.EqualTo(1));
-        Assert.That(products[0].Id, Is.EqualTo(101));
-        Assert.That(products[0].Name, Is.EqualTo("Silver Spoon"));
-        Assert.That(products[0].Category, Is.EqualTo("Tableware"));
-        Assert.That(products[0].Price, Is.EqualTo(15.50m));
-        Assert.That(products[0].Quantity, Is.EqualTo(120));
+        var source = new TablewareCsvSource(_testFilePath);
+        var dao = new ProductDao<Tableware>(source);
+
+        // Act
+        var results = dao.FindAll();
+
+        // Assert
+        Assert.That(results.Count, Is.EqualTo(2));
+        Assert.That(results[0].Id, Is.EqualTo(101));
     }
 
     [Test]
-    public void GetAll_WithInvalidLines_SkipsInvalidLines()
+    public void Factory_RegisterAndCreate_ReturnsWorkingDao()
     {
-        var content = "101;Silver Spoon;Tableware;15.50;120\n" +
-                     "102;Ceramic Plate;Tableware;25.00\n" + // Parts < 5
-                     "103;Crystal Vase;Household;45.99;30;Extra\n" + // Parts != 5
-                     "104;Cotton Towel;Household;12.00;200\n" +
-                     "105\n" + // id only
-                     "106;Glass Bowl;Tableware;10.25;60";
+        // Arrange
+        var factory = ProductDaoFactory.Instance;
+        var source = new TablewareCsvSource(_testFilePath);
+        factory.RegisterSource<Tableware>(source);
+
+        // Act
+        var dao = factory.CreateProductDao<Tableware>();
+
+        // Assert
+        Assert.That(dao, Is.Not.Null);
+        Assert.That(dao, Is.InstanceOf<IProductDao<Tableware>>());
+    }
+    
+    [Test]
+    public void SearchByPrice_WithFuzzyMatch_ReturnsItemsWithinOneUnitRange()
+    {
+        // Arrange
+        // Searching range from 9.0 to 11.0
+        var content = "101;Lower Bound;Tableware;9.00;10\n" +   // Should match
+                            "102;Exact Match;Tableware;10.00;10\n" +  // Should match
+                            "103;Upper Bound;Tableware;11.00;10\n" +  // Should match
+                            "104;Too Low;Tableware;8.99;10\n" +       // Should NOT match
+                            "105;Too High;Tableware;11.01;10";        // Should NOT match
+    
         File.WriteAllText(_testFilePath, content);
-        var repository = new FileProductRepository(_testFilePath);
-        
-        var products = repository.GetAll();
-        
-        Assert.That(products.Count, Is.EqualTo(3));
-        Assert.That(products[0].Id, Is.EqualTo(101));
-        Assert.That(products[1].Id, Is.EqualTo(104));
-        Assert.That(products[2].Id, Is.EqualTo(106));
-    }
 
-    [Test]
-    public void GetAll_WithEmptyFile_ReturnsEmptyList()
-    {
-        File.WriteAllText(_testFilePath, string.Empty);
-        var repository = new FileProductRepository(_testFilePath);
-        
-        var products = repository.GetAll();
-        
-        Assert.That(products, Is.Not.Null);
-        Assert.That(products.Count, Is.EqualTo(0));
-    }
+        var source = new TablewareCsvSource(_testFilePath);
+        var factory = ProductDaoFactory.Instance;
+        factory.RegisterSource<Tableware>(source);
+        var dao = factory.CreateProductDao<Tableware>();
+        var service = new InventoryService(factory);
+        var controller = new ProductController(service);
 
-    [Test]
-    public void GetAll_WithNonExistentFile_ThrowsFileNotFoundException()
-    {
-        var nonExistentPath = Path.Combine(Path.GetTempPath(), $"somefile.txt");
-        var repository = new FileProductRepository(nonExistentPath);
+        // Act
+        var results = controller.SearchByPrice(10.0m);
 
-
-        Assert.Throws<FileNotFoundException>(() => repository.GetAll());
-    }
-
-    [Test]
-    public void GetAll_WithInvalidNumberFormat_ThrowsException()
-    {
-        var content = "abc;Silver Spoon;Tableware;15.50;120\n" + // Invalid ID
-                     "102;Ceramic Plate;Tableware;invalid;80\n" + // Invalid price
-                     "103;Crystal Vase;Household;45.99;abc"; // Invalid quantity
-        File.WriteAllText(_testFilePath, content);
-        var repository = new FileProductRepository(_testFilePath);
-
-        Assert.Throws<FormatException>(() => repository.GetAll());
-    }
-
-    [Test]
-    public void GetAll_WithEmptyLines_SkipsEmptyLines()
-    {
-        var content = "101;Silver Spoon;Tableware;15.50;120\n" +
-                     "\n" +
-                     "102;Ceramic Plate;Tableware;25.00;80\n" +
-                     "\n" +
-                     "103;Crystal Vase;Household;45.99;30";
-        File.WriteAllText(_testFilePath, content);
-        var repository = new FileProductRepository(_testFilePath);
-
-
-        var products = repository.GetAll();
-        
-        Assert.That(products.Count, Is.EqualTo(3));
-        Assert.That(products[0].Id, Is.EqualTo(101));
-        Assert.That(products[1].Id, Is.EqualTo(102));
-        Assert.That(products[2].Id, Is.EqualTo(103));
-    }
-
-    [Test]
-    public void GetAll_WithAscendingOrder_ReturnsProductsInAscendingOrder()
-    {
-        var content = "101;Silver Spoon;Tableware;15.50;120\n" +
-                     "102;Ceramic Plate;Tableware;25.00;80\n" +
-                     "103;Crystal Vase;Household;45.99;30\n" +
-                     "104;Cotton Towel;Household;12.00;200\n" +
-                     "105;Stainless Knife;Tableware;18.75;150";
-        File.WriteAllText(_testFilePath, content);
-        var repository = new FileProductRepository(_testFilePath);
-
-        var products = repository.GetAll();
-
-        Assert.That(products.Count, Is.EqualTo(5));
-        
-        Assert.That(products[0].Id, Is.EqualTo(101));
-        Assert.That(products[1].Id, Is.EqualTo(102));
-        Assert.That(products[2].Id, Is.EqualTo(103));
-        Assert.That(products[3].Id, Is.EqualTo(104));
-        Assert.That(products[4].Id, Is.EqualTo(105));
-        
-        for (int i = 0; i < products.Count - 1; i++)
-        {
-            Assert.That(products[i].Id, Is.LessThan(products[i + 1].Id));
-        }
-    }
-
-    [Test]
-    public void GetAll_WithDescendingOrder_ReturnsProductsInDescendingOrder()
-    {
-        var content = "105;Stainless Knife;Tableware;18.75;150\n" +
-                     "104;Cotton Towel;Household;12.00;200\n" +
-                     "103;Crystal Vase;Household;45.99;30\n" +
-                     "102;Ceramic Plate;Tableware;25.00;80\n" +
-                     "101;Silver Spoon;Tableware;15.50;120";
-        File.WriteAllText(_testFilePath, content);
-        var repository = new FileProductRepository(_testFilePath);
-
-        var products = repository.GetAll();
-
-        Assert.That(products.Count, Is.EqualTo(5));
-        
-        Assert.That(products[0].Id, Is.EqualTo(105));
-        Assert.That(products[1].Id, Is.EqualTo(104));
-        Assert.That(products[2].Id, Is.EqualTo(103));
-        Assert.That(products[3].Id, Is.EqualTo(102));
-        Assert.That(products[4].Id, Is.EqualTo(101));
-        
-        for (int i = 0; i < products.Count - 1; i++)
-        {
-            Assert.That(products[i].Id, Is.GreaterThan(products[i + 1].Id));
-        }
-    }
-
-    [Test]
-    public void GetAll_WithUnsortedOrder_ReturnsProductsInFileOrder()
-    {
-        var content = "103;Crystal Vase;Household;45.99;30\n" +
-                     "101;Silver Spoon;Tableware;15.50;120\n" +
-                     "105;Stainless Knife;Tableware;18.75;150\n" +
-                     "102;Ceramic Plate;Tableware;25.00;80\n" +
-                     "104;Cotton Towel;Household;12.00;200";
-        File.WriteAllText(_testFilePath, content);
-        var repository = new FileProductRepository(_testFilePath);
-
-        var products = repository.GetAll();
-
-        Assert.That(products.Count, Is.EqualTo(5));
-        
-        Assert.That(products[0].Id, Is.EqualTo(103));
-        Assert.That(products[1].Id, Is.EqualTo(101));
-        Assert.That(products[2].Id, Is.EqualTo(105));
-        Assert.That(products[3].Id, Is.EqualTo(102));
-        Assert.That(products[4].Id, Is.EqualTo(104));
+        // Assert
+        Assert.That(results.Count, Is.EqualTo(3), "Should find exactly 3 items within the 9.0-11.0 range");
+    
+        // Verify specific items are present
+        var names = results.Select(p => p.Name).ToList();
+        Assert.That(names, Contains.Item("Lower Bound"));
+        Assert.That(names, Contains.Item("Exact Match"));
+        Assert.That(names, Contains.Item("Upper Bound"));
+        Assert.That(names, Does.Not.Contain("Too Low"));
+        Assert.That(names, Does.Not.Contain("Too High"));
     }
 }

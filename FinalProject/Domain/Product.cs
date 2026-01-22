@@ -4,7 +4,7 @@ public abstract class Product
 {
     public int Id { get; }
     public string Name { get; }
-    public string Category { get; } // Added this
+    public string Category { get; }
     public decimal Price { get; }
     public int Quantity { get; }
 
@@ -20,12 +20,12 @@ public abstract class Product
 
 public class Tableware : Product
 {
-    public string Material { get; }
+    public string ProductName { get; }
 
     private Tableware(Builder builder) 
         : base(builder.Id, builder.Name, builder.Category, builder.Price, builder.Quantity)
     {
-        this.Material = builder.Material;
+        ProductName = builder.Name;
     }
 
     public class Builder
@@ -35,15 +35,13 @@ public class Tableware : Product
         public string Category { get; private set; }
         public decimal Price { get; private set; }
         public int Quantity { get; private set; }
-        public string Material { get; private set; }
 
         public Builder SetId(int id) { Id = id; return this; }
         public Builder SetName(string name) { Name = name; return this; }
         public Builder SetCategory(string category) { Category = category; return this; }
         public Builder SetPrice(decimal price) { Price = price; return this; }
         public Builder SetQuantity(int qty) { Quantity = qty; return this; }
-        public Builder SetMaterial(string mat) { Material = mat; return this; }
-
+        
         public Tableware Build() => new Tableware(this);
     }
 }
