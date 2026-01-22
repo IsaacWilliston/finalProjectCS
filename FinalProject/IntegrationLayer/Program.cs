@@ -7,17 +7,39 @@ using FinalProject.ConsoleView;
 var factory = ProductDaoFactory.Instance;
 string filePath = "Dataset/products.txt";
 
-if (File.Exists(filePath))
+try
 {
-    factory.RegisterSource<Product>(new TablewareCsvSource(filePath));
+    if (File.Exists(filePath))
+    {
+        factory.RegisterSource<Product>(new TablewareCsvSource(filePath));
+    }
+    else
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine($"Error: File not found at '{filePath}'");
+        Console.WriteLine("Please ensure the products.txt file exists in the Dataset folder.");
+        Console.ResetColor();
+        return;
+    }
 }
-else
+catch (Exception ex)
 {
-    throw new FileNotFoundException("File not found.", filePath);
+    Console.ForegroundColor = ConsoleColor.Red;
+    Console.WriteLine($"Error initializing application: {ex.Message}");
+    Console.ResetColor();
+    return;
 }
 
-
-var service = new InventoryService(factory);
-
-var controller = new ProductController(service);
-UserView.Main(controller);
+try
+{
+    var service = new InventoryService(factory);
+    
+    var controller = new ProductController(service);
+    UserView.Main(controller);
+}
+catch (Exception ex)
+{
+    Console.ForegroundColor = ConsoleColor.Red;
+    Console.WriteLine($"Fatal error: {ex.Message}");
+    Console.ResetColor();
+}
