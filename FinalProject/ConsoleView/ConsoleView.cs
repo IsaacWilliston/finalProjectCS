@@ -32,13 +32,13 @@ static class UserView
             {
                 case "help":
                     Console.WriteLine("List of commands available:\n" +
-                                      "info => information about the app:  Developer Full Name, App version, Developer's Contact information ..etc.\n" +
-                                      "exit => exit the program\n" +
+                                      "info => information about the app:  Developer Name, App version, Developer's Contact info ..etc.\n" +
+                                      "list => unsorted list of all inventory.\n" +
                                       "list [id/price/quantity] [asc/desc] => list of all products sorted by parameter\n" +
                                       "- example:\n" +
                                       ">>> :list id desc\n" +
-                                      "search [search category(e.g name, id ..)]*enter* then input [value]\n");
-                    Console.ForegroundColor = ConsoleColor.Green;
+                                      "search [category/name/id/price] => searches items based on filters" +
+                                      "\nexit => exit the program\n");
                     Console.WriteLine(searchUsage);
                     break;
 
@@ -55,7 +55,7 @@ static class UserView
                     if (parts.Length == 2 || parts.Length > 3)
                     {
                         Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine("Wrong number of parameters!");
+                        Console.WriteLine("Wrong number of parameters! Type 'help' for a list of commands.");
                         break;
                     }
                     
@@ -84,6 +84,10 @@ static class UserView
                             ascending = true;
                             allProducts = controller.GetAllSorted(sortField, ascending);
                             DisplayResults(allProducts);
+                            break;
+                        default:
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("Wrong parameter! Type 'help' for a list of commands.");
                             break;
                     }
                     break;

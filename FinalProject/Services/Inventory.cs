@@ -1,5 +1,6 @@
 ﻿namespace FinalProject.Services;
 using Domain;
+using Domain.Filtering;
 
 public class InventoryService
 {
@@ -10,45 +11,25 @@ public class InventoryService
         _products = repository.GetAll();
     }
 
-    public List<Product> GetAll()
-    {
-        return new List<Product>(_products);
-    }
-    
+    // Fixes the 'GetAll' unresolved error
+    public List<Product> GetAll() => new List<Product>(_products);
+
+    // Fixes the 'GetAllSorted' unresolved error
     public List<Product> GetAllSorted(string sortBy, bool ascending = true)
     {
-        IEnumerable<Product> sorted = sortBy.ToLower() switch
+        var query = _products.AsEnumerable();
+        query = sortBy.ToLower() switch
         {
-            "id"       => ascending ? _products.OrderBy(p => p.Id) : _products.OrderByDescending(p => p.Id),
-            "price"    => ascending ? _products.OrderBy(p => p.Price) : _products.OrderByDescending(p => p.Price),
-            "quantity" => ascending ? _products.OrderBy(p => p.Quantity) : _products.OrderByDescending(p => p.Quantity),
-            _ => _products
+            "id" => ascending ? query.OrderBy(p => p.Id) : query.OrderByDescending(p => p.Id),
+            "price" => ascending ? query.OrderBy(p => p.Price) : query.OrderByDescending(p => p.Price),
+            _ => query
         };
-
-        return sorted.ToList();
+        return query.ToList();
     }
 
-    public List<Product> SearchByName(string name)
+    // The core method that makes the Predicate system work
+    public List<Product> Search(IPredicate<Product> condition)
     {
-        return _products
-            .Where(p => p.Name.Contains(name, StringComparison.OrdinalIgnoreCase)).ToList();
-    }
-
-    public List<Product> SearchByCategory(string category)
-    {
-        return _products
-            .Where(p => p.Category.Equals(category, StringComparison.OrdinalIgnoreCase)).ToList();
-    }
-
-    public List<Product> SearchById(int id)
-    {
-        return _products
-            .Where(p => p.Id == id).ToList();
-    }
-
-    public List<Product> SearchByPrice(decimal price)
-    {
-        return _products
-            .Where(p => p.Price >= price && p.Price <= (price + 1)).ToList();
+        return _products.Where(condition.Matches).ToList();
     }
 }

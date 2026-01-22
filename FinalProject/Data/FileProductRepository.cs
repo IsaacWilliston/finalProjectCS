@@ -12,13 +12,15 @@ public class FileProductRepository(string path) : IProductRepository
             var parts = line.Split(';');
             if (parts.Length != 5) continue;
 
-            products.Add(new Product(
-                int.Parse(parts[0].Trim()),
-                parts[1].Trim(),
-                parts[2].Trim(),
-                decimal.Parse(parts[3].Trim()),
-                int.Parse(parts[4].Trim())
-            ));
+            // Inside FileProductRepository.cs
+            products.Add(new Tableware.Builder()
+                .SetId(int.Parse(parts[0]))
+                .SetName(parts[1])
+                .SetCategory(parts[2]) // Correctly parse category from file
+                .SetPrice(decimal.Parse(parts[3]))
+                .SetQuantity(int.Parse(parts[4]))
+                .SetMaterial("Ceramic") 
+                .Build());
         }
 
         return products;
